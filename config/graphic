@@ -1,8 +1,8 @@
-if [ "$DISPLAYSERVER" = "xorg-server" ]; then
-  SDL_SUPPORT="yes"
-else
-  SDL_SUPPORT="no"
-fi
+#if [ "$DISPLAYSERVER" = "xorg-server" ]; then
+SDL_SUPPORT="yes"
+#else
+#  SDL_SUPPORT="no"
+#fi
 
 if [ "$OPENGL" = no ]; then
   OPENGL_SUPPORT="no"
