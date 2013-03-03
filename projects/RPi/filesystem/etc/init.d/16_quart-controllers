@@ -1,0 +1,5 @@
+# runlevels: openelec
+progress "setup quart controllers"
+  modprobe gamecon map=0,0,3,3,3,3
+  #If calibration is required, use js*.
+  #export SDL_JOYSTICK_DEVICE="/dev/input/js0:/dev/input/js1:/dev/input/js2:/dev/input/js3"
