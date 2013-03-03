@@ -61,6 +61,11 @@ if [ "$DISPLAYSERVER" = "xorg-server" ]; then
   PKG_DEPENDS="$PKG_DEPENDS SDL SDL_image"
 fi
 
+if [ "$JOYSTICK_SUPPORT" = yes ]; then
+  PKG_BUILD_DEPENDS="$PKG_BUILD_DEPENDS SDL"
+  PKG_DEPENDS="$PKG_DEPENDS SDL"
+fi
+
 if [ "$OPENGL" = "Mesa" ]; then
   # for OpenGL (GLX) support
   PKG_BUILD_DEPENDS="$PKG_BUILD_DEPENDS Mesa glu glew"
