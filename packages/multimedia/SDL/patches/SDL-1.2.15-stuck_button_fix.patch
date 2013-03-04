@@ -1,0 +1,148 @@
+diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjoystick.c
+--- a/src/joystick/linux/SDL_sysjoystick.c	2012-01-19 01:30:06.000000000 -0500
++++ b/src/joystick/linux/SDL_sysjoystick.c	2013-03-04 13:51:56.000000000 -0500
+@@ -293,6 +293,8 @@
+ 		int coef[3];
+ 	} abs_correct[ABS_MAX];
+ #endif
++
++        int fresh;
+ };
+ 
+ 
+@@ -688,7 +690,7 @@
+ 				printf("Joystick has button: 0x%x\n", i);
+ #endif
+ 				joystick->hwdata->key_map[i-BTN_MISC] =
+-						joystick->nbuttons;
++						joystick->nbuttons+1;
+ 				++joystick->nbuttons;
+ 			}
+ 		}
+@@ -698,11 +700,11 @@
+ 				printf("Joystick has button: 0x%x\n", i);
+ #endif
+ 				joystick->hwdata->key_map[i-BTN_MISC] =
+-						joystick->nbuttons;
++						joystick->nbuttons+1;
+ 				++joystick->nbuttons;
+ 			}
+ 		}
+-		for ( i=0; i<ABS_MISC; ++i ) {
++		for ( i=0; i<ABS_MAX; ++i ) {
+ 			/* Skip hats */
+ 			if ( i == ABS_HAT0X ) {
+ 				i = ABS_HAT3Y;
+@@ -842,6 +844,9 @@
+ #endif
+ 		JS_ConfigJoystick(joystick, fd);
+ 
++        // mark joystick as fresh and ready
++       joystick->hwdata->fresh = 1;
++
+ 	return(0);
+ }
+ 
+@@ -1074,6 +1079,58 @@
+ 	return value;
+ }
+ 
++static __inline__ void
++PollAllValues(SDL_Joystick * joystick)
++{
++    struct input_absinfo absinfo;
++    int a, b = 0;
++    Uint8 btnMapping;
++
++    char key_states[KEY_MAX/8 + 1];
++    memset(key_states, 0, sizeof(key_states));
++    ioctl(joystick->hwdata->fd, EVIOCGKEY(sizeof(key_states)), key_states);
++
++    for ( a=BTN_MISC; a < KEY_MAX; ++a ) {
++        btnMapping = joystick->hwdata->key_map[a-BTN_MISC];
++        if ( btnMapping > 0 ) {
++            SDL_PrivateJoystickButton(joystick,
++                btnMapping-1,
++		!!(key_states[a/8] & (1<<(a % 8))));
++        }
++    }
++
++    // Poll all axis
++    for (a = ABS_X; b < ABS_MAX; a++) {
++        switch (a) {
++        case ABS_HAT0X:
++        case ABS_HAT0Y:
++        case ABS_HAT1X:
++        case ABS_HAT1Y:
++        case ABS_HAT2X:
++        case ABS_HAT2Y:
++        case ABS_HAT3X:
++        case ABS_HAT3Y:
++            // ingore hats
++            break;
++        default:
++            if (joystick->hwdata->abs_correct[b].used) {
++                if (ioctl(joystick->hwdata->fd, EVIOCGABS(a), &absinfo) >= 0) {
++                    absinfo.value = EV_AxisCorrect(joystick, b, absinfo.value);
++
++#ifdef DEBUG_INPUT_EVENTS
++                    printf("Joystick : Re-read Axis %d (%d) val= %d\n",
++                        joystick->hwdata->abs_map[b], a, absinfo.value);
++#endif
++                    SDL_PrivateJoystickAxis(joystick,
++                            joystick->hwdata->abs_map[b],
++                            absinfo.value);
++                }
++            }
++            b++;
++        }
++    }
++}
++
+ static __inline__ void EV_HandleEvents(SDL_Joystick *joystick)
+ {
+ 	struct input_event events[32];
+@@ -1087,6 +1144,11 @@
+ 	}
+ #endif
+ 
++	if (joystick->hwdata->fresh) {
++	        PollAllValues(joystick);
++	        joystick->hwdata->fresh = 0;
++    	}
++
+ 	while ((len=read(joystick->hwdata->fd, events, (sizeof events))) > 0) {
+ 		len /= sizeof(events[0]);
+ 		for ( i=0; i<len; ++i ) {
+@@ -1097,11 +1159,11 @@
+ 					code -= BTN_MISC;
+ #ifndef NO_LOGICAL_JOYSTICKS
+ 					if (!LogicalJoystickButton(joystick,
+-				           joystick->hwdata->key_map[code],
++				           joystick->hwdata->key_map[code]-1,
+ 					   events[i].value))
+ #endif
+ 					SDL_PrivateJoystickButton(joystick,
+-				           joystick->hwdata->key_map[code],
++				           joystick->hwdata->key_map[code]-1,
+ 					   events[i].value);
+ 				}
+ 				break;
+@@ -1144,6 +1206,17 @@
+ 					break;
+ 				}
+ 				break;
++                            case EV_SYN:
++			    	switch (code) {
++                                    case SYN_DROPPED :
++#ifdef DEBUG_INPUT_EVENTS
++			                printf("Event SYN_DROPPED dectected\n");
++#endif
++			                PollAllValues(joystick);
++			                break;
++			            default:
++			                break;
++                                    }
+ 			    default:
+ 				break;
+ 			}
