@@ -1,6 +1,6 @@
 diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjoystick.c
 --- a/src/joystick/linux/SDL_sysjoystick.c	2012-01-19 01:30:06.000000000 -0500
-+++ b/src/joystick/linux/SDL_sysjoystick.c	2013-03-04 13:51:56.000000000 -0500
++++ b/src/joystick/linux/SDL_sysjoystick.c	2013-03-05 13:52:25.528133011 -0500
 @@ -293,6 +293,8 @@
  		int coef[3];
  	} abs_correct[ABS_MAX];
@@ -19,7 +19,7 @@ diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjo
  				++joystick->nbuttons;
  			}
  		}
-@@ -698,11 +700,11 @@
+@@ -698,7 +700,7 @@
  				printf("Joystick has button: 0x%x\n", i);
  #endif
  				joystick->hwdata->key_map[i-BTN_MISC] =
@@ -28,11 +28,6 @@ diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjo
  				++joystick->nbuttons;
  			}
  		}
--		for ( i=0; i<ABS_MISC; ++i ) {
-+		for ( i=0; i<ABS_MAX; ++i ) {
- 			/* Skip hats */
- 			if ( i == ABS_HAT0X ) {
- 				i = ABS_HAT3Y;
 @@ -842,6 +844,9 @@
  #endif
  		JS_ConfigJoystick(joystick, fd);
@@ -102,19 +97,18 @@ diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjo
  static __inline__ void EV_HandleEvents(SDL_Joystick *joystick)
  {
  	struct input_event events[32];
-@@ -1087,6 +1144,11 @@
- 	}
- #endif
- 
-+	if (joystick->hwdata->fresh) {
-+	        PollAllValues(joystick);
-+	        joystick->hwdata->fresh = 0;
-+    	}
-+
+@@ -1090,6 +1147,10 @@
  	while ((len=read(joystick->hwdata->fd, events, (sizeof events))) > 0) {
  		len /= sizeof(events[0]);
  		for ( i=0; i<len; ++i ) {
-@@ -1097,11 +1159,11 @@
++			if (joystick->hwdata->fresh) {
++				        PollAllValues(joystick);
++				        joystick->hwdata->fresh = 0;
++    			}
+ 			code = events[i].code;
+ 			switch (events[i].type) {
+ 			    case EV_KEY:
+@@ -1097,11 +1158,11 @@
  					code -= BTN_MISC;
  #ifndef NO_LOGICAL_JOYSTICKS
  					if (!LogicalJoystickButton(joystick,
@@ -128,7 +122,7 @@ diff -Naur a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjo
  					   events[i].value);
  				}
  				break;
-@@ -1144,6 +1206,17 @@
+@@ -1144,6 +1205,17 @@
  					break;
  				}
  				break;
