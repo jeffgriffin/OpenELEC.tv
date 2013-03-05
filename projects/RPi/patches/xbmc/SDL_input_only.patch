@@ -1,10 +1,10 @@
-diff -Naur a/xbmc/Application.cpp sb/xbmc/Application.cpp
---- a/xbmc/Application.cpp	2013-02-26 06:14:43.000000000 -0500
-+++ b/xbmc/Application.cpp	2013-03-04 14:16:42.646397656 -0500
-@@ -797,7 +797,7 @@
+diff -Naur a/xbmc/Application.cpp b/xbmc/Application.cpp
+--- a/xbmc/Application.cpp	2013-03-05 10:57:46.000000000 -0500
++++ b/xbmc/Application.cpp	2013-03-05 11:04:02.353933167 -0500
+@@ -795,7 +795,7 @@
    uint32_t sdlFlags = 0;
  
- #if defined(HAS_SDL_OPENGL) || (HAS_GLES == 2)
+ #if (defined(HAS_SDL_OPENGL) || (HAS_GLES == 2)) && !defined(HAS_GLX)
 -  sdlFlags |= SDL_INIT_VIDEO;
 +  //sdlFlags |= SDL_INIT_VIDEO;
  #endif
@@ -12,7 +12,7 @@ diff -Naur a/xbmc/Application.cpp sb/xbmc/Application.cpp
  #if defined(HAS_SDL_JOYSTICK) && !defined(TARGET_WINDOWS)
 diff -Naur a/xbmc/input/linux/LinuxInputDevices.cpp b/xbmc/input/linux/LinuxInputDevices.cpp
 --- a/xbmc/input/linux/LinuxInputDevices.cpp	2013-02-26 06:14:43.000000000 -0500
-+++ b/xbmc/input/linux/LinuxInputDevices.cpp	2013-03-04 14:12:57.987335260 -0500
++++ b/xbmc/input/linux/LinuxInputDevices.cpp	2013-03-05 10:57:46.000000000 -0500
 @@ -1066,6 +1066,13 @@
    /* fill device info structure */
    GetInfo(fd);
@@ -28,21 +28,24 @@ diff -Naur a/xbmc/input/linux/LinuxInputDevices.cpp b/xbmc/input/linux/LinuxInpu
      SetupKeyboardAutoRepeat(fd);
  
 diff -Naur a/xbmc/system.h b/xbmc/system.h
---- a/xbmc/system.h	2013-02-26 06:14:43.000000000 -0500
-+++ b/xbmc/system.h	2013-03-04 14:31:41.802912278 -0500
-@@ -166,12 +166,13 @@
+--- a/xbmc/system.h	2013-03-05 10:57:46.000000000 -0500
++++ b/xbmc/system.h	2013-03-05 11:04:31.841795497 -0500
+@@ -167,15 +167,16 @@
  #ifdef HAVE_SDL
  #define HAS_SDL
  #ifndef HAS_SDL_OPENGL
 -#define HAS_SDL_OPENGL
 +//#define HAS_SDL_OPENGL
  #endif
+ #ifndef HAVE_X11
 -#define HAS_SDL_WIN_EVENTS
 +//#define HAS_SDL_WIN_EVENTS
+ #endif
  #else
+ #ifndef HAVE_X11
  #define HAS_LINUX_EVENTS
  #endif
 +#define HAS_LINUX_EVENTS
+ #endif
  #define HAS_LINUX_NETWORK
  #define HAS_LIRC
- #ifdef HAVE_LIBPULSE
