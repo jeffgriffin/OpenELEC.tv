@@ -29,8 +29,8 @@ diff -Naur a/xbmc/input/linux/LinuxInputDevices.cpp b/xbmc/input/linux/LinuxInpu
  
 diff -Naur a/xbmc/system.h b/xbmc/system.h
 --- a/xbmc/system.h	2013-03-05 10:57:46.000000000 -0500
-+++ b/xbmc/system.h	2013-03-05 11:04:31.841795497 -0500
-@@ -167,15 +167,16 @@
++++ b/xbmc/system.h	2013-03-05 12:21:21.000000000 -0500
+@@ -167,16 +167,17 @@
  #ifdef HAVE_SDL
  #define HAS_SDL
  #ifndef HAS_SDL_OPENGL
@@ -45,7 +45,8 @@ diff -Naur a/xbmc/system.h b/xbmc/system.h
  #ifndef HAVE_X11
  #define HAS_LINUX_EVENTS
  #endif
-+#define HAS_LINUX_EVENTS
  #endif
++#define HAS_LINUX_EVENTS
  #define HAS_LINUX_NETWORK
  #define HAS_LIRC
+ #ifdef HAVE_LIBPULSE
